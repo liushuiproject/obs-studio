@@ -203,7 +203,7 @@
      <x>0</x>
      <y>0</y>
      <width>1079</width>
-     <height>22</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -753,7 +753,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>71</width>
+           <width>82</width>
            <height>16</height>
           </rect>
          </property>
@@ -807,7 +807,7 @@
            <x>0</x>
            <y>0</y>
            <width>16</width>
-           <height>28</height>
+           <height>26</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -1822,6 +1822,17 @@
    </property>
    <property name="text">
     <string>Basic.MainMenu.View.SourceIcons</string>
+   </property>
+  </action>
+  <action name="toggleLog">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LogViewer</string>
    </property>
   </action>
  </widget>
