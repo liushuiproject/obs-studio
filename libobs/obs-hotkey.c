@@ -1233,6 +1233,9 @@ static inline void release_pressed_binding(obs_hotkey_binding_t *binding)
 	else if (obs->hotkeys.router_func)
 		obs->hotkeys.router_func(obs->hotkeys.router_func_data,
 					 hotkey->id, false);
+
+	if (hotkey->released_func)
+		hotkey->released_func(hotkey->data, hotkey->id, hotkey);
 }
 
 static inline void handle_binding(obs_hotkey_binding_t *binding,
@@ -1614,4 +1617,15 @@ void obs_hotkeys_set_sceneitem_hotkeys_translations(const char *show,
 	SET_T(show);
 	SET_T(hide);
 #undef SET_T
+}
+
+void obs_hotkey_set_released_callback(obs_hotkey_id id,
+				      obs_hotkey_released_func func)
+{
+	size_t idx;
+	if (!find_id(id, &idx))
+		return;
+
+	obs_hotkey_t *hotkey = &obs->hotkeys.hotkeys.array[idx];
+	hotkey->released_func = func;
 }

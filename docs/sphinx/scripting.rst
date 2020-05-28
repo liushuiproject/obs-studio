@@ -266,6 +266,13 @@ modules/namespaces).
                        :py:func:`remove_current_callback()` to remove
                        the callback.
 
+.. py:function:: obs_hotkey_set_released_callback(id, callback)
+
+   Adds a function to be called when the hotkey is released.
+
+   :param id:          ID of hotkey.
+   :param callback:    Callback for when the hotkey is released.
+
 .. py:function:: obs_hotkey_unregister(callback)
 
    Unregisters the hotkey associated with the specified callback.
