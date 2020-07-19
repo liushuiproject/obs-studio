@@ -217,6 +217,12 @@ EXPORT obs_hotkey_pair_id obs_hotkey_pair_register_source(
 	obs_hotkey_active_func func0, obs_hotkey_active_func func1, void *data0,
 	void *data1);
 
+typedef void (*obs_hotkey_released_func)(void *data, obs_hotkey_id id,
+					 obs_hotkey_t *hotkey);
+
+EXPORT void obs_hotkey_set_released_callback(obs_hotkey_id id,
+					     obs_hotkey_released_func func);
+
 EXPORT void obs_hotkey_unregister(obs_hotkey_id id);
 
 EXPORT void obs_hotkey_pair_unregister(obs_hotkey_pair_id id);

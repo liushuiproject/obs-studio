@@ -142,6 +142,8 @@ struct obs_hotkey {
 	void *registerer;
 
 	obs_hotkey_id pair_partner_id;
+
+	obs_hotkey_released_func released_func;
 };
 
 struct obs_hotkey_pair {
