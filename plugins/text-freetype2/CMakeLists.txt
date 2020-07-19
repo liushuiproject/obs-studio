@@ -1,6 +1,6 @@
 project(text-freetype2)
 
-if(DISABLE_FREETYPE)
+if(NOT ENABLE_FREETYPE)
 	message(STATUS "Freetype text plugin disabled")
 	return()
 endif()
