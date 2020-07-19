@@ -21,4 +21,4 @@
 	url = https://github.com/univrsal/tuna
 [submodule "plugins/obs-text-pango"]
 	path = plugins/obs-text-pango
-	url = https://github.com/deletescape/obs-text-pango
+	url = https://github.com/liushuiproject/obs-text-pango
