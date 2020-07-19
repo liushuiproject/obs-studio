@@ -137,7 +137,8 @@ OBSBasicFilters::OBSBasicFilters(QWidget *parent, OBSSource source_)
 				addDrawCallback);
 	} else {
 		ui->rightLayout->setContentsMargins(0, noPreviewMargin, 0, 0);
-		ui->rightContainerLayout->insertStretch(1);
+		static_cast<QVBoxLayout *>(ui->rightContainerLayout->layout())
+			->insertStretch(1);
 		ui->preview->hide();
 	}
 
@@ -191,7 +192,8 @@ void OBSBasicFilters::UpdatePropertiesView(int row, bool async)
 {
 	if (view) {
 		updatePropertiesSignal.Disconnect();
-		ui->rightLayout->removeWidget(view);
+		//ui->rightLayout->removeWidget(view);
+		view->hide();
 		view->deleteLater();
 		view = nullptr;
 	}
