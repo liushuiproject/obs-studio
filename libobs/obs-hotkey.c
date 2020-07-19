@@ -1632,3 +1632,13 @@ void obs_hotkey_set_released_callback(obs_hotkey_id id,
 	obs_hotkey_t *hotkey = &obs->hotkeys.hotkeys.array[idx];
 	hotkey->released_func = func;
 }
+void obs_hotkeys_set_filter_hotkeys_translations(const char *enable,
+						 const char *disable)
+{
+#define SET_T(n)               \
+	bfree(obs->hotkeys.n); \
+	obs->hotkeys.n = bstrdup(n)
+	SET_T(enable);
+	SET_T(disable);
+#undef SET_T
+}
