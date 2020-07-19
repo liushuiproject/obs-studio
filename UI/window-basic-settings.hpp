@@ -234,11 +234,8 @@ private:
 	void OnOAuthStreamKeyConnected();
 	void OnAuthConnected();
 	QString lastService;
-<<<<<<< HEAD
 	int prevLangIndex;
 	bool prevBrowserAccel;
-=======
-
 	QTabWidget *tabs;
 	QLabel *noHotkeys;
 	QWidget *hotkeysFrontend;
@@ -263,8 +260,6 @@ private:
 	QLabel *outputLabel;
 	QLabel *encoderLabel;
 	QLabel *serviceLabel;
-
->>>>>>> 6ea5804688d38bafb50744399a4df885fb623523
 private slots:
 	void UpdateServerList();
 	void UpdateKeyLink();
