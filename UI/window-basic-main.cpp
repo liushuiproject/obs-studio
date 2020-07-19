@@ -4231,6 +4231,7 @@ void OBSBasic::on_scenes_currentItemChanged(QListWidgetItem *current,
 
 void OBSBasic::EditSceneName()
 {
+	App()->DisableHotkeys();
 	QListWidgetItem *item = ui->scenes->currentItem();
 	Qt::ItemFlags flags = item->flags();
 
@@ -4435,11 +4436,14 @@ void OBSBasic::on_actionAddScene_triggered()
 
 void OBSBasic::on_actionRemoveScene_triggered()
 {
+	App()->DisableHotkeys();
 	OBSScene scene = GetCurrentScene();
 	obs_source_t *source = obs_scene_get_source(scene);
 
 	if (source && QueryRemoveSource(source))
 		obs_source_remove(source);
+
+	App()->UpdateHotkeyFocusSetting();
 }
 
 void OBSBasic::ChangeSceneIndex(bool relative, int offset, int invalidIdx)
@@ -5008,6 +5012,8 @@ void OBSBasic::on_actionRemoveSource_triggered()
 		return Yes == remove_items.clickedButton();
 	};
 
+	App()->DisableHotkeys();
+
 	if (items.size() == 1) {
 		OBSSceneItem &item = items[0];
 		obs_source_t *source = obs_sceneitem_get_source(item);
@@ -5020,6 +5026,8 @@ void OBSBasic::on_actionRemoveSource_triggered()
 				obs_sceneitem_remove(item);
 		}
 	}
+
+	App()->UpdateHotkeyFocusSetting();
 }
 
 void OBSBasic::on_actionInteract_triggered()
@@ -5259,6 +5267,7 @@ static void RenameListItem(OBSBasic *parent, QListWidget *listWidget,
 void OBSBasic::SceneNameEdited(QWidget *editor,
 			       QAbstractItemDelegate::EndEditHint endHint)
 {
+	App()->UpdateHotkeyFocusSetting();
 	OBSScene scene = GetCurrentScene();
 	QLineEdit *edit = qobject_cast<QLineEdit *>(editor);
 	string text = QT_TO_UTF8(edit->text().trimmed());

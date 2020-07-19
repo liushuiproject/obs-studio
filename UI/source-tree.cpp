@@ -326,6 +326,7 @@ void SourceTreeItem::EnterEditMode()
 	editor->installEventFilter(this);
 	boxLayout->insertWidget(index, editor);
 	setFocusProxy(editor);
+	App()->DisableHotkeys();
 }
 
 void SourceTreeItem::ExitEditMode(bool save)
@@ -345,6 +346,7 @@ void SourceTreeItem::ExitEditMode(bool save)
 	editor = nullptr;
 	setFocusPolicy(Qt::NoFocus);
 	boxLayout->insertWidget(index, label);
+	App()->UpdateHotkeyFocusSetting();
 
 	/* ----------------------------------------- */
 	/* check for empty string                    */

@@ -39,6 +39,7 @@ bool NameDialog::AskForName(QWidget *parent, const QString &title,
 			    const QString &text, string &str,
 			    const QString &placeHolder, int maxSize)
 {
+	App()->DisableHotkeys();
 	if (maxSize <= 0 || maxSize > 32767)
 		maxSize = 170;
 
@@ -60,6 +61,8 @@ bool NameDialog::AskForName(QWidget *parent, const QString &title,
 		while (str.size() && IsWhitespace(str.front()))
 			str.erase(str.begin());
 	}
+
+	App()->UpdateHotkeyFocusSetting();
 
 	return accepted;
 }
