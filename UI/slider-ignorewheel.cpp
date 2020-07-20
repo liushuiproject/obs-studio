@@ -1,3 +1,4 @@
+#include <QtWidgets/QStyleOptionSlider>
 #include "slider-ignorewheel.hpp"
 
 SliderIgnoreScroll::SliderIgnoreScroll(QWidget *parent) : QSlider(parent)
@@ -19,4 +20,16 @@ void SliderIgnoreScroll::wheelEvent(QWheelEvent *event)
 		event->ignore();
 	else
 		QSlider::wheelEvent(event);
+}
+
+void SliderIgnoreScroll::mouseDoubleClickEvent(QMouseEvent *event) {
+        QStyleOptionSlider opt;
+        this->initStyleOption(&opt);
+        QRect sr = this->style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderHandle, this);
+
+        if (sr.contains(event->pos())) {
+		emit sliderHandleDoubleClicked();
+		return;
+        }
+        QSlider::mouseDoubleClickEvent(event);
 }

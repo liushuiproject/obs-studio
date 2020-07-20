@@ -12,6 +12,10 @@ public:
 	SliderIgnoreScroll(Qt::Orientation orientation,
 			   QWidget *parent = nullptr);
 
+signals:
+	virtual void sliderHandleDoubleClicked();
+
 protected:
 	virtual void wheelEvent(QWheelEvent *event) override;
+	virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
 };

@@ -235,6 +235,7 @@ private slots:
 
 	void SetMuted(bool checked);
 	void SliderChanged(int vol);
+	void SlideHandleDoubleClicked();
 	void updateText();
 
 signals:
