@@ -72,6 +72,14 @@ void VolControl::SliderChanged(int vol)
 	updateText();
 }
 
+void VolControl::SliderHandleDoubleClicked()
+{
+	obs_fader_set_db(obs_fader, -2.0);
+	updateText();
+	// TODO: update slider?
+	// TODO: transition?
+}
+
 void VolControl::updateText()
 {
 	QString text;
@@ -254,6 +262,8 @@ VolControl::VolControl(OBSSource source_, bool showConfig, bool vertical)
 
 	QWidget::connect(slider, SIGNAL(valueChanged(int)), this,
 			 SLOT(SliderChanged(int)));
+	QWidget::connect(slider, SIGNAL(sliderHandleDoubleClicked()), this,
+			 SLOT(SlideHandleDoubleClicked()));
 	QWidget::connect(mute, SIGNAL(clicked(bool)), this,
 			 SLOT(SetMuted(bool)));
 
