@@ -1524,13 +1524,22 @@ void SourceTree::AddGroup()
 
 void SourceTree::UpdateNoSourcesMessage()
 {
-	std::string darkPath;
-	GetDataFilePath("themes/Dark/no_sources.svg", darkPath);
+	const char * currentTheme = config_get_string(App()->GlobalConfig(), "General","CurrentTheme");
+	char buffer [50] = {0};
+	snprintf(buffer, 50, "themes/%s/no_sources.svg", currentTheme);
 
-	QColor color = palette().text().color();
-	bool lightTheme = (color.redF() < 0.5);
-	QString file = lightTheme ? ":res/images/no_sources.svg"
-				  : darkPath.c_str();
+	QString file;
+	std::string themePath;
+	if (GetDataFilePath(buffer, themePath)) {
+		file = themePath.c_str();
+	} else {
+                std::string darkPath;
+                GetDataFilePath("themes/Liushui/no_sources.svg", darkPath);
+
+                QColor color = palette().text().color();
+                bool lightTheme = (color.redF() < 0.5);
+		file = lightTheme ? ":res/images/no_sources.svg" : darkPath.c_str();
+	}
 	iconNoSources.load(file);
 
 	QTextOption opt(Qt::AlignHCenter);
