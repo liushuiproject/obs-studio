@@ -7298,7 +7298,7 @@ void OBSBasic::SystemTrayInit()
 	trayIcon.reset(new QSystemTrayIcon(
 		QIcon::fromTheme("obs-tray", QIcon(":/res/images/obs.png")),
 		this));
-	trayIcon->setToolTip("OBS Studio");
+	trayIcon->setToolTip("Liushui OBS");
 
 	showHide = new QAction(QTStr("Basic.SystemTray.Show"), trayIcon.data());
 	sysTrayStream = new QAction(QTStr("Basic.Main.StartStreaming"),
@@ -7364,7 +7364,7 @@ void OBSBasic::SysTrayNotify(const QString &text,
 	if (trayIcon && QSystemTrayIcon::supportsMessages()) {
 		QSystemTrayIcon::MessageIcon icon =
 			QSystemTrayIcon::MessageIcon(n);
-		trayIcon->showMessage("OBS Studio", text, icon, 10000);
+		trayIcon->showMessage("Liushui OBS", text, icon, 10000);
 	}
 }
 

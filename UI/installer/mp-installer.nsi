@@ -2,14 +2,14 @@ Unicode true
 ManifestDPIAware true
 
 ; Define your application name
-!define APPNAME "OBS Studio"
+!define APPNAME "Liushui OBS"
 
 !ifndef APPVERSION
 !define APPVERSION "25.0.8"
 !define SHORTVERSION "25.0.8"
 !endif
 
-!define APPNAMEANDVERSION "OBS Studio ${SHORTVERSION}"
+!define APPNAMEANDVERSION "Liushui OBS ${SHORTVERSION}"
 
 ; Additional script dependencies
 !include WinVer.nsh
@@ -45,16 +45,16 @@ RequestExecutionLevel admin
 
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Launch OBS Studio ${SHORTVERSION}"
+!define MUI_FINISHPAGE_RUN_TEXT "Launch Liushui OBS ${SHORTVERSION}"
 !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchOBS"
 
-!define MUI_WELCOMEPAGE_TEXT "This setup will guide you through installing OBS Studio.\n\nIt is recommended that you close all other applications before starting, including OBS Studio. This will make it possible to update relevant files without having to reboot your computer.\n\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TEXT "This setup will guide you through installing Liushui OBS.\n\nIt is recommended that you close all other applications before starting, including Liushui OBS. This will make it possible to update relevant files without having to reboot your computer.\n\nClick Next to continue."
 
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE PreReqCheck
 
 !define MUI_HEADERIMAGE
 !define MUI_PAGE_HEADER_TEXT "License Information"
-!define MUI_PAGE_HEADER_SUBTEXT "Please review the license terms before installing OBS Studio."
+!define MUI_PAGE_HEADER_SUBTEXT "Please review the license terms before installing Liushui OBS."
 !define MUI_LICENSEPAGE_TEXT_TOP "Press Page Down or scroll to see the rest of the license."
 !define MUI_LICENSEPAGE_TEXT_BOTTOM " "
 !define MUI_LICENSEPAGE_BUTTON "&Next >"
@@ -77,7 +77,7 @@ Function PreReqCheck
 !ifdef INSTALL64
 	${if} ${RunningX64}
 	${Else}
-		MessageBox MB_OK|MB_ICONSTOP "This version of OBS Studio is not compatible with your system.  Please use the 32bit (x86) installer."
+		MessageBox MB_OK|MB_ICONSTOP "This version of Liushui OBS is not compatible with your system.  Please use the 32bit (x86) installer."
 	${EndIf}
 	; Abort on XP or lower
 !endif
@@ -247,15 +247,15 @@ FunctionEnd
 
 Function LaunchOBS
 !ifdef INSTALL64
-	Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\OBS Studio\OBS Studio (64bit).lnk"'
+	Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\Liushui OBS\Liushui OBS (64bit).lnk"'
 !else
-	Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\OBS Studio\OBS Studio (32bit).lnk"'
+	Exec '"$WINDIR\explorer.exe" "$SMPROGRAMS\Liushui OBS\Liushui OBS (32bit).lnk"'
 !endif
 FunctionEnd
 
 Var outputErrors
 
-Section "OBS Studio" SecCore
+Section "Liushui OBS" SecCore
 
 	; Set Section properties
 	SectionIn RO
@@ -322,24 +322,24 @@ Section "OBS Studio" SecCore
 
 !ifdef INSTALL64
 	SetOutPath "$INSTDIR\bin\64bit"
-	CreateShortCut "$DESKTOP\OBS Studio.lnk" "$INSTDIR\bin\64bit\obs64.exe"
+	CreateShortCut "$DESKTOP\Liushui OBS.lnk" "$INSTDIR\bin\64bit\obs64.exe"
 !else
 	SetOutPath "$INSTDIR\bin\32bit"
-	CreateShortCut "$DESKTOP\OBS Studio.lnk" "$INSTDIR\bin\32bit\obs32.exe"
+	CreateShortCut "$DESKTOP\Liushui OBS.lnk" "$INSTDIR\bin\32bit\obs32.exe"
 !endif
 
-	CreateDirectory "$SMPROGRAMS\OBS Studio"
+	CreateDirectory "$SMPROGRAMS\Liushui OBS"
 
 !ifdef INSTALL64
 	SetOutPath "$INSTDIR\bin\64bit"
-	CreateShortCut "$SMPROGRAMS\OBS Studio\OBS Studio (64bit).lnk" "$INSTDIR\bin\64bit\obs64.exe"
+	CreateShortCut "$SMPROGRAMS\Liushui OBS\Liushui OBS (64bit).lnk" "$INSTDIR\bin\64bit\obs64.exe"
 !else
 	SetOutPath "$INSTDIR\bin\32bit"
-	CreateDirectory "$SMPROGRAMS\OBS Studio"
-	CreateShortCut "$SMPROGRAMS\OBS Studio\OBS Studio (32bit).lnk" "$INSTDIR\bin\32bit\obs32.exe"
+	CreateDirectory "$SMPROGRAMS\Liushui OBS"
+	CreateShortCut "$SMPROGRAMS\Liushui OBS\Liushui OBS (32bit).lnk" "$INSTDIR\bin\32bit\obs32.exe"
 !endif
 
-	CreateShortCut "$SMPROGRAMS\OBS Studio\Uninstall.lnk" "$INSTDIR\uninstall.exe"
+	CreateShortCut "$SMPROGRAMS\Liushui OBS\Uninstall.lnk" "$INSTDIR\uninstall.exe"
 
 	StrCmp $outputErrors "yes" 0 +2
 		Call filesInUse
@@ -403,7 +403,7 @@ SectionEnd
 
 ; Modern install component descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "Core OBS Studio files"
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecCore} "Core Liushui OBS files"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;Uninstall section
@@ -442,11 +442,11 @@ Section "un.obs-studio Program Files" UninstallSection1
 	Delete "$INSTDIR\uninstall.exe"
 
 	; Delete Shortcuts
-	Delete "$DESKTOP\OBS Studio.lnk"
-	Delete "$SMPROGRAMS\OBS Studio\OBS Studio (32bit).lnk"
-	Delete "$SMPROGRAMS\OBS Studio\Uninstall.lnk"
+	Delete "$DESKTOP\Liushui OBS.lnk"
+	Delete "$SMPROGRAMS\Liushui OBS\Liushui OBS (32bit).lnk"
+	Delete "$SMPROGRAMS\Liushui OBS\Uninstall.lnk"
 	${if} ${RunningX64}
-		Delete "$SMPROGRAMS\OBS Studio\OBS Studio (64bit).lnk"
+		Delete "$SMPROGRAMS\Liushui OBS\Liushui OBS (64bit).lnk"
 	${endif}
 
 	IfFileExists "$INSTDIR\data\obs-plugins\win-ivcam\seg_service.exe" UnregisterSegService SkipUnreg
@@ -454,15 +454,15 @@ Section "un.obs-studio Program Files" UninstallSection1
 	ExecWait '"$INSTDIR\data\obs-plugins\win-ivcam\seg_service.exe" /UnregServer'
 	SkipUnreg:
 
-	; Clean up OBS Studio
+	; Clean up Liushui OBS
 	RMDir /r "$INSTDIR\bin"
 	RMDir /r "$INSTDIR\data"
 	RMDir /r "$INSTDIR\obs-plugins"
 	RMDir "$INSTDIR"
 
 	; Remove remaining directories
-	RMDir "$SMPROGRAMS\OBS Studio"
-	RMDir "$INSTDIR\OBS Studio"
+	RMDir "$SMPROGRAMS\Liushui OBS"
+	RMDir "$INSTDIR\Liushui OBS"
 SectionEnd
 
 Section /o "un.User Settings" UninstallSection2
@@ -476,11 +476,11 @@ SectionEnd
 
 ; Version information
 VIProductVersion "${APPVERSION}.0"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "OBS Studio"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "Liushui OBS"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "obsproject.com"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "(c) 2012-2020"
 ; FileDescription is what shows in the UAC elevation prompt when signed
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "OBS Studio"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "Liushui OBS"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "1.0"
 
 ; eof

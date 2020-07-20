@@ -32,8 +32,8 @@ MESSAGE(STATUS "OBS_VERSION: ${OBS_VERSION}")
 
 if(INSTALLER_RUN)
 	set(CPACK_PACKAGE_EXECUTABLES
-		"obs32" "OBS Studio (32bit)"
-		"obs64" "OBS Studio (64bit)")
+		"obs32" "Liushui OBS (32bit)"
+		"obs64" "Liushui OBS (64bit)")
 	set(CPACK_CREATE_DESKTOP_LINKS
 		"obs32"
 		"obs64")
@@ -48,7 +48,7 @@ else()
 		set(_output_suffix "")
 	endif()
 
-	set(CPACK_PACKAGE_EXECUTABLES "obs${_output_suffix}" "OBS Studio")
+	set(CPACK_PACKAGE_EXECUTABLES "obs${_output_suffix}" "Liushui OBS")
 	set(CPACK_CREATE_DESKTOP_LINKS "obs${_output_suffix}")
 endif()
 
@@ -66,7 +66,7 @@ if(INSTALLER_RUN)
 	set(CPACK_PACKAGE_FILE_NAME "obs-studio-${OBS_VERSION}")
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	if(WIN32)
-		set(CPACK_PACKAGE_NAME "OBS Studio (64bit)")
+		set(CPACK_PACKAGE_NAME "Liushui OBS (64bit)")
 	endif()
 	set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "OBSStudio64")
 	set(CPACK_WIX_UPGRADE_GUID "44c72510-2e8e-489c-8bc0-2011a9631b0b")
@@ -74,7 +74,7 @@ elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 	set(CPACK_PACKAGE_FILE_NAME "obs-studio-x64-${OBS_VERSION}")
 else()
 	if(WIN32)
-		set(CPACK_PACKAGE_NAME "OBS Studio (32bit)")
+		set(CPACK_PACKAGE_NAME "Liushui OBS (32bit)")
 	endif()
 	set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "OBSStudio32")
 	set(CPACK_WIX_UPGRADE_GUID "a26acea4-6190-4470-9fb9-f6d32f3ba030")

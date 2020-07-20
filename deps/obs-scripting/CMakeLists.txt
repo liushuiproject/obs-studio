@@ -159,7 +159,7 @@ set(obs-scripting_HEADERS
 	)
 
 if(WIN32)
-	set(MODULE_DESCRIPTION "OBS Studio scripting module")
+	set(MODULE_DESCRIPTION "Liushui OBS scripting module")
 	configure_file(${CMAKE_SOURCE_DIR}/cmake/winrc/obs-module.rc.in obs-scripting.rc)
 	list(APPEND obs-scripting_SOURCES
 		obs-scripting.rc)

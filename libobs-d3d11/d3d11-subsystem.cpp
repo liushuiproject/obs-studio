@@ -210,7 +210,7 @@ void gs_device::InitCompiler()
 
 	throw "Could not find any D3DCompiler libraries. Make sure you've "
 	      "installed the <a href=\"https://obsproject.com/go/dxwebsetup\">"
-	      "DirectX components</a> that OBS Studio requires.";
+	      "DirectX components</a> that Liushui OBS requires.";
 }
 
 void gs_device::InitFactory(uint32_t adapterIdx)

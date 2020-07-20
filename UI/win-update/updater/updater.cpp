@@ -336,7 +336,7 @@ bool DownloadWorkerThread()
 {
 	const DWORD tlsProtocols = WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_2;
 
-	HttpHandle hSession = WinHttpOpen(L"OBS Studio Updater/2.1",
+	HttpHandle hSession = WinHttpOpen(L"Liushui OBS Updater/2.1",
 					  WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
 					  WINHTTP_NO_PROXY_NAME,
 					  WINHTTP_NO_PROXY_BYPASS, 0);
@@ -935,7 +935,7 @@ static bool UpdateVS2017Redists(json_t *root)
 
 	const DWORD tlsProtocols = WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_2;
 
-	HttpHandle hSession = WinHttpOpen(L"OBS Studio Updater/2.1",
+	HttpHandle hSession = WinHttpOpen(L"Liushui OBS Updater/2.1",
 					  WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
 					  WINHTTP_NO_PROXY_NAME,
 					  WINHTTP_NO_PROXY_BYPASS, 0);
@@ -1691,7 +1691,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int)
 		if (hMutex) {
 			MessageBox(
 				nullptr, L"Updater Error",
-				L"OBS Studio Updater must be run as an administrator.",
+				L"Liushui OBS Updater must be run as an administrator.",
 				MB_ICONWARNING);
 			return 2;
 		}
