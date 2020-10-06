@@ -208,6 +208,7 @@ OBSBasicProperties::~OBSBasicProperties()
 	obs_source_dec_showing(source);
 	main->SaveProject();
 	App()->UpdateHotkeyFocusSetting();
+	main->UpdateContextBar();
 }
 
 void OBSBasicProperties::AddPreviewButton()

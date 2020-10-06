@@ -160,12 +160,12 @@ static void add_video_encoder_params(struct ffmpeg_muxer *stream,
 	enum AVColorTransferCharacteristic trc = AVCOL_TRC_UNSPECIFIED;
 	enum AVColorSpace spc = AVCOL_SPC_UNSPECIFIED;
 	switch (info->colorspace) {
-	case VIDEO_CS_DEFAULT:
 	case VIDEO_CS_601:
 		pri = AVCOL_PRI_SMPTE170M;
 		trc = AVCOL_TRC_SMPTE170M;
 		spc = AVCOL_SPC_SMPTE170M;
 		break;
+	case VIDEO_CS_DEFAULT:
 	case VIDEO_CS_709:
 		pri = AVCOL_PRI_BT709;
 		trc = AVCOL_TRC_BT709;
@@ -440,7 +440,11 @@ static void signal_failure(struct ffmpeg_muxer *stream)
 		code = OBS_OUTPUT_UNSUPPORTED;
 		break;
 	default:
-		code = OBS_OUTPUT_ERROR;
+		if (stream->is_network) {
+			code = OBS_OUTPUT_DISCONNECTED;
+		} else {
+			code = OBS_OUTPUT_ENCODE_ERROR;
+		}
 	}
 
 	obs_output_signal_stop(stream->output, code);

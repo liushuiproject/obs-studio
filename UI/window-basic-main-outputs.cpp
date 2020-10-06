@@ -164,36 +164,6 @@ static void OBSStopVirtualCam(void *data, calldata_t *params)
 	UNUSED_PARAMETER(params);
 }
 
-static void FindBestFilename(string &strPath, bool noSpace)
-{
-	int num = 2;
-
-	if (!os_file_exists(strPath.c_str()))
-		return;
-
-	const char *ext = strrchr(strPath.c_str(), '.');
-	if (!ext)
-		return;
-
-	int extStart = int(ext - strPath.c_str());
-	for (;;) {
-		string testPath = strPath;
-		string numStr;
-
-		numStr = noSpace ? "_" : " (";
-		numStr += to_string(num++);
-		if (!noSpace)
-			numStr += ")";
-
-		testPath.insert(extStart, numStr);
-
-		if (!os_file_exists(testPath.c_str())) {
-			strPath = testPath;
-			break;
-		}
-	}
-}
-
 /* ------------------------------------------------------------------------ */
 
 static bool CreateAACEncoder(OBSEncoder &res, string &id, int bitrate,
@@ -243,6 +213,9 @@ bool BasicOutputHandler::StartVirtualCam()
 	if (main->vcamEnabled) {
 		obs_output_set_media(virtualCam, obs_get_video(),
 				     obs_get_audio());
+		if (!Active())
+			SetupOutputs();
+
 		return obs_output_start(virtualCam);
 	}
 	return false;
@@ -294,7 +267,7 @@ struct SimpleOutput : BasicOutputHandler {
 	void UpdateRecordingAudioSettings();
 	virtual void Update() override;
 
-	void SetupOutputs();
+	void SetupOutputs() override;
 	int GetAudioBitrate() const;
 
 	void LoadRecordingPreset_h264(const char *encoder);
@@ -306,6 +279,7 @@ struct SimpleOutput : BasicOutputHandler {
 	void UpdateRecording();
 	bool ConfigureRecording(bool useReplayBuffer);
 
+	virtual bool SetupStreaming(obs_service_t *service) override;
 	virtual bool StartStreaming(obs_service_t *service) override;
 	virtual bool StartRecording() override;
 	virtual bool StartReplayBuffer() override;
@@ -753,7 +727,7 @@ const char *FindAudioEncoderFromCodec(const char *type)
 	return nullptr;
 }
 
-bool SimpleOutput::StartStreaming(obs_service_t *service)
+bool SimpleOutput::SetupStreaming(obs_service_t *service)
 {
 	if (!Active())
 		SetupOutputs();
@@ -847,9 +821,11 @@ bool SimpleOutput::StartStreaming(obs_service_t *service)
 	obs_output_set_video_encoder(streamOutput, h264Streaming);
 	obs_output_set_audio_encoder(streamOutput, aacStreaming, 0);
 	obs_output_set_service(streamOutput, service);
+	return true;
+}
 
-	/* --------------------- */
-
+bool SimpleOutput::StartStreaming(obs_service_t *service)
+{
 	bool reconnect = config_get_bool(main->Config(), "Output", "Reconnect");
 	int retryDelay =
 		config_get_uint(main->Config(), "Output", "RetryDelay");
@@ -898,33 +874,10 @@ bool SimpleOutput::StartStreaming(obs_service_t *service)
 	else
 		lastError = string();
 
+	const char *type = obs_service_get_output_type(service);
 	blog(LOG_WARNING, "Stream output type '%s' failed to start!%s%s", type,
 	     hasLastError ? "  Last Error: " : "", hasLastError ? error : "");
 	return false;
-}
-
-static void remove_reserved_file_characters(string &s)
-{
-	replace(s.begin(), s.end(), '\\', '/');
-	replace(s.begin(), s.end(), '*', '_');
-	replace(s.begin(), s.end(), '?', '_');
-	replace(s.begin(), s.end(), '"', '_');
-	replace(s.begin(), s.end(), '|', '_');
-	replace(s.begin(), s.end(), ':', '_');
-	replace(s.begin(), s.end(), '>', '_');
-	replace(s.begin(), s.end(), '<', '_');
-}
-
-static void ensure_directory_exists(string &path)
-{
-	replace(path.begin(), path.end(), '\\', '/');
-
-	size_t last = path.rfind('/');
-	if (last == string::npos)
-		return;
-
-	string directory = path.substr(0, last);
-	os_mkdirs(directory.c_str());
 }
 
 void SimpleOutput::UpdateRecording()
@@ -977,54 +930,15 @@ bool SimpleOutput::ConfigureRecording(bool updateReplayBuffer)
 	int rbSize =
 		config_get_int(main->Config(), "SimpleOutput", "RecRBSize");
 
-	os_dir_t *dir = path && path[0] ? os_opendir(path) : nullptr;
-
-	if (!dir) {
-		if (main->isVisible())
-			OBSMessageBox::warning(main,
-					       QTStr("Output.BadPath.Title"),
-					       QTStr("Output.BadPath.Text"));
-		else
-			main->SysTrayNotify(QTStr("Output.BadPath.Text"),
-					    QSystemTrayIcon::Warning);
-		return false;
-	}
-
-	os_closedir(dir);
-
+	string f;
 	string strPath;
-	strPath += path;
-
-	char lastChar = strPath.back();
-	if (lastChar != '/' && lastChar != '\\')
-		strPath += "/";
-
-	strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format,
-					     noSpace, filenameFormat);
-	ensure_directory_exists(strPath);
-	if (!overwriteIfExists)
-		FindBestFilename(strPath, noSpace);
 
 	obs_data_t *settings = obs_data_create();
 	if (updateReplayBuffer) {
-		string f;
-
-		if (rbPrefix && *rbPrefix) {
-			f += rbPrefix;
-			if (f.back() != ' ')
-				f += " ";
-		}
-
-		f += filenameFormat;
-
-		if (rbSuffix && *rbSuffix) {
-			if (*rbSuffix != ' ')
-				f += " ";
-			f += rbSuffix;
-		}
-
-		remove_reserved_file_characters(f);
-
+		f = GetFormatString(filenameFormat, rbPrefix, rbSuffix);
+		strPath = GetOutputFilename(path, ffmpegOutput ? "avi" : format,
+					    noSpace, overwriteIfExists,
+					    f.c_str());
 		obs_data_set_string(settings, "directory", path);
 		obs_data_set_string(settings, "format", f.c_str());
 		obs_data_set_string(settings, "extension", format);
@@ -1033,6 +947,11 @@ bool SimpleOutput::ConfigureRecording(bool updateReplayBuffer)
 		obs_data_set_int(settings, "max_size_mb",
 				 usingRecordingPreset ? rbSize : 0);
 	} else {
+		f = GetFormatString(filenameFormat, nullptr, nullptr);
+		strPath = GetRecordingFilename(path,
+					       ffmpegOutput ? "avi" : format,
+					       noSpace, overwriteIfExists,
+					       f.c_str(), ffmpegOutput);
 		obs_data_set_string(settings, ffmpegOutput ? "url" : "path",
 				    strPath.c_str());
 	}
@@ -1147,9 +1066,10 @@ struct AdvancedOutput : BasicOutputHandler {
 	inline void SetupStreaming();
 	inline void SetupRecording();
 	inline void SetupFFmpeg();
-	void SetupOutputs();
+	void SetupOutputs() override;
 	int GetAudioBitrate(size_t i) const;
 
+	virtual bool SetupStreaming(obs_service_t *service) override;
 	virtual bool StartStreaming(obs_service_t *service) override;
 	virtual bool StartRecording() override;
 	virtual bool StartReplayBuffer() override;
@@ -1584,7 +1504,7 @@ int AdvancedOutput::GetAudioBitrate(size_t i) const
 	return FindClosestAvailableAACBitrate(bitrate);
 }
 
-bool AdvancedOutput::StartStreaming(obs_service_t *service)
+bool AdvancedOutput::SetupStreaming(obs_service_t *service)
 {
 	int streamTrack =
 		config_get_int(main->Config(), "AdvOut", "TrackIndex") - 1;
@@ -1686,9 +1606,11 @@ bool AdvancedOutput::StartStreaming(obs_service_t *service)
 
 	obs_output_set_video_encoder(streamOutput, h264Streaming);
 	obs_output_set_audio_encoder(streamOutput, streamAudioEnc, 0);
+	return true;
+}
 
-	/* --------------------- */
-
+bool AdvancedOutput::StartStreaming(obs_service_t *service)
+{
 	obs_output_set_service(streamOutput, service);
 
 	bool reconnect = config_get_bool(main->Config(), "Output", "Reconnect");
@@ -1737,6 +1659,7 @@ bool AdvancedOutput::StartStreaming(obs_service_t *service)
 	else
 		lastError = string();
 
+	const char *type = obs_service_get_output_type(service);
 	blog(LOG_WARNING, "Stream output type '%s' failed to start!%s%s", type,
 	     hasLastError ? "  Last Error: " : "", hasLastError ? error : "");
 	return false;
@@ -1779,34 +1702,10 @@ bool AdvancedOutput::StartRecording()
 						  ? "FFFileNameWithoutSpace"
 						  : "RecFileNameWithoutSpace");
 
-		os_dir_t *dir = path && path[0] ? os_opendir(path) : nullptr;
-
-		if (!dir) {
-			if (main->isVisible())
-				OBSMessageBox::warning(
-					main, QTStr("Output.BadPath.Title"),
-					QTStr("Output.BadPath.Text"));
-			else
-				main->SysTrayNotify(
-					QTStr("Output.BadPath.Text"),
-					QSystemTrayIcon::Warning);
-			return false;
-		}
-
-		os_closedir(dir);
-
-		string strPath;
-		strPath += path;
-
-		char lastChar = strPath.back();
-		if (lastChar != '/' && lastChar != '\\')
-			strPath += "/";
-
-		strPath += GenerateSpecifiedFilename(recFormat, noSpace,
-						     filenameFormat);
-		ensure_directory_exists(strPath);
-		if (!overwriteIfExists)
-			FindBestFilename(strPath, noSpace);
+		string strPath = GetRecordingFilename(path, recFormat, noSpace,
+						      overwriteIfExists,
+						      filenameFormat,
+						      ffmpegRecording);
 
 		obs_data_t *settings = obs_data_create();
 		obs_data_set_string(settings, ffmpegRecording ? "url" : "path",
@@ -1879,53 +1778,11 @@ bool AdvancedOutput::StartReplayBuffer()
 		rbTime = config_get_int(main->Config(), "AdvOut", "RecRBTime");
 		rbSize = config_get_int(main->Config(), "AdvOut", "RecRBSize");
 
-		os_dir_t *dir = path && path[0] ? os_opendir(path) : nullptr;
-
-		if (!dir) {
-			if (main->isVisible())
-				OBSMessageBox::warning(
-					main, QTStr("Output.BadPath.Title"),
-					QTStr("Output.BadPath.Text"));
-			else
-				main->SysTrayNotify(
-					QTStr("Output.BadPath.Text"),
-					QSystemTrayIcon::Warning);
-			return false;
-		}
-
-		os_closedir(dir);
-
-		string strPath;
-		strPath += path;
-
-		char lastChar = strPath.back();
-		if (lastChar != '/' && lastChar != '\\')
-			strPath += "/";
-
-		strPath += GenerateSpecifiedFilename(recFormat, noSpace,
-						     filenameFormat);
-		ensure_directory_exists(strPath);
-		if (!overwriteIfExists)
-			FindBestFilename(strPath, noSpace);
+		string f = GetFormatString(filenameFormat, rbPrefix, rbSuffix);
+		string strPath = GetOutputFilename(
+			path, recFormat, noSpace, overwriteIfExists, f.c_str());
 
 		obs_data_t *settings = obs_data_create();
-		string f;
-
-		if (rbPrefix && *rbPrefix) {
-			f += rbPrefix;
-			if (f.back() != ' ')
-				f += " ";
-		}
-
-		f += filenameFormat;
-
-		if (rbSuffix && *rbSuffix) {
-			if (*rbSuffix != ' ')
-				f += " ";
-			f += rbSuffix;
-		}
-
-		remove_reserved_file_characters(f);
 
 		obs_data_set_string(settings, "directory", path);
 		obs_data_set_string(settings, "format", f.c_str());
@@ -1990,6 +1847,25 @@ bool AdvancedOutput::ReplayBufferActive() const
 }
 
 /* ------------------------------------------------------------------------ */
+
+bool BasicOutputHandler::SetupAutoRemux(const char *&ext)
+{
+	bool autoRemux = config_get_bool(main->Config(), "Video", "AutoRemux");
+	if (autoRemux && strcmp(ext, "mp4") == 0)
+		ext = "mkv";
+	return autoRemux;
+}
+
+std::string
+BasicOutputHandler::GetRecordingFilename(const char *path, const char *ext,
+					 bool noSpace, bool overwrite,
+					 const char *format, bool ffmpeg)
+{
+	bool remux = !ffmpeg && SetupAutoRemux(ext);
+	string dst = GetOutputFilename(path, ext, noSpace, overwrite, format);
+	lastRecordingPath = remux ? dst : "";
+	return dst;
+}
 
 BasicOutputHandler *CreateSimpleOutputHandler(OBSBasic *main)
 {

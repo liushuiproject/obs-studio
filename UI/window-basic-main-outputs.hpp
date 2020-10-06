@@ -19,6 +19,8 @@ struct BasicOutputHandler {
 	std::string outputType;
 	std::string lastError;
 
+	std::string lastRecordingPath;
+
 	OBSSignal startRecording;
 	OBSSignal stopRecording;
 	OBSSignal startReplayBuffer;
@@ -36,6 +38,7 @@ struct BasicOutputHandler {
 
 	virtual ~BasicOutputHandler(){};
 
+	virtual bool SetupStreaming(obs_service_t *service) = 0;
 	virtual bool StartStreaming(obs_service_t *service) = 0;
 	virtual bool StartRecording() = 0;
 	virtual bool StartReplayBuffer() { return false; }
@@ -50,12 +53,19 @@ struct BasicOutputHandler {
 	virtual bool VirtualCamActive() const;
 
 	virtual void Update() = 0;
+	virtual void SetupOutputs() = 0;
 
 	inline bool Active() const
 	{
 		return streamingActive || recordingActive || delayActive ||
 		       replayBufferActive || virtualCamActive;
 	}
+
+protected:
+	bool SetupAutoRemux(const char *&ext);
+	std::string GetRecordingFilename(const char *path, const char *ext,
+					 bool noSpace, bool overwrite,
+					 const char *format, bool ffmpeg);
 };
 
 BasicOutputHandler *CreateSimpleOutputHandler(OBSBasic *main);

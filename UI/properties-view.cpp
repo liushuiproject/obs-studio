@@ -684,7 +684,7 @@ void OBSPropertiesView::AddColor(obs_property_t *prop, QFormLayout *layout,
 	layout->addRow(label, subLayout);
 }
 
-static void MakeQFont(obs_data_t *font_obj, QFont &font, bool limit = false)
+void MakeQFont(obs_data_t *font_obj, QFont &font, bool limit = false)
 {
 	const char *face = obs_data_get_string(font_obj, "face");
 	const char *style = obs_data_get_string(font_obj, "style");
@@ -1443,28 +1443,42 @@ void OBSPropertiesView::AddProperty(obs_property_t *property,
 		return;
 
 	if (obs_property_long_description(property)) {
-		QString lStr = "<html>%1 <img src='%2' style=' \
-				vertical-align: bottom;  \
-				' /></html>";
 		bool lightTheme = palette().text().color().redF() < 0.5;
 		QString file = lightTheme ? ":/res/images/help.svg"
 					  : ":/res/images/help_light.svg";
 		if (label) {
+			QString lStr = "<html>%1 <img src='%2' style=' \
+				vertical-align: bottom;  \
+				' /></html>";
+
 			label->setText(lStr.arg(label->text(), file));
 			label->setToolTip(
 				obs_property_long_description(property));
 		} else if (type == OBS_PROPERTY_BOOL) {
+
+			QString bStr = "<html> <img src='%1' style=' \
+				vertical-align: bottom;  \
+				' /></html>";
+
+			const char *desc = obs_property_description(property);
+
 			QWidget *newWidget = new QWidget();
+
 			QHBoxLayout *boxLayout = new QHBoxLayout(newWidget);
 			boxLayout->setContentsMargins(0, 0, 0, 0);
 			boxLayout->setAlignment(Qt::AlignLeft);
+			boxLayout->setSpacing(0);
 
 			QCheckBox *check = qobject_cast<QCheckBox *>(widget);
-			QLabel *help =
-				new QLabel(lStr.arg(check->text(), file));
+			check->setText(desc);
+			check->setToolTip(
+				obs_property_long_description(property));
+
+			QLabel *help = new QLabel(check);
+			help->setText(bStr.arg(file));
 			help->setToolTip(
 				obs_property_long_description(property));
-			check->setText("");
+
 			boxLayout->addWidget(check);
 			boxLayout->addWidget(help);
 			widget = newWidget;

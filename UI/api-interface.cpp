@@ -119,6 +119,9 @@ struct OBSStudioAPI : obs_frontend_callbacks {
 			OBSSource tr = main->ui->transitions->itemData(i)
 					       .value<OBSSource>();
 
+			if (!tr)
+				continue;
+
 			obs_source_addref(tr);
 			da_push_back(sources->sources, &tr);
 		}
@@ -532,6 +535,17 @@ struct OBSStudioAPI : obs_frontend_callbacks {
 							OBSSource(scene)),
 						  Q_ARG(bool, false));
 		}
+	}
+
+	void obs_frontend_take_screenshot(void) override
+	{
+		QMetaObject::invokeMethod(main, "Screenshot");
+	}
+
+	void obs_frontend_take_source_screenshot(obs_source_t *source) override
+	{
+		QMetaObject::invokeMethod(main, "Screenshot",
+					  Q_ARG(OBSSource, OBSSource(source)));
 	}
 
 	void on_load(obs_data_t *settings) override

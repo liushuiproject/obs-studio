@@ -38,6 +38,7 @@
 
 #include "qt-wrappers.hpp"
 #include "obs-app.hpp"
+#include "log-viewer.hpp"
 #include "window-basic-main.hpp"
 #include "window-basic-settings.hpp"
 #include "crash-report.hpp"
@@ -84,10 +85,9 @@ string opt_starting_collection;
 string opt_starting_profile;
 string opt_starting_scene;
 
-bool remuxAfterRecord = false;
-string remuxFilename;
-
 bool restart = false;
+
+QPointer<OBSLogViewer> obsLogViewer;
 
 // GPU hint exports for AMD/NVIDIA laptops
 #ifdef _MSC_VER
@@ -191,6 +191,9 @@ QObject *CreateShortcutFilter()
 					event->nativeVirtualKey());
 			}
 
+			if (event->isAutoRepeat())
+				return true;
+
 			hotkey.modifiers = TranslateQtKeyboardEventModifiers(
 				event->modifiers());
 
@@ -250,12 +253,22 @@ string CurrentDateTimeString()
 }
 
 static inline void LogString(fstream &logFile, const char *timeString,
-			     char *str)
+			     char *str, int log_level)
 {
-	logFile << timeString << str << endl;
+	string msg;
+	msg += timeString;
+	msg += str;
+
+	logFile << msg << endl;
+
+	if (!!obsLogViewer)
+		QMetaObject::invokeMethod(obsLogViewer.data(), "AddLine",
+					  Qt::QueuedConnection,
+					  Q_ARG(int, log_level),
+					  Q_ARG(QString, QString(msg.c_str())));
 }
 
-static inline void LogStringChunk(fstream &logFile, char *str)
+static inline void LogStringChunk(fstream &logFile, char *str, int log_level)
 {
 	char *nextLine = str;
 	string timeString = CurrentTimeString();
@@ -272,12 +285,12 @@ static inline void LogStringChunk(fstream &logFile, char *str)
 			nextLine[0] = 0;
 		}
 
-		LogString(logFile, timeString.c_str(), str);
+		LogString(logFile, timeString.c_str(), str, log_level);
 		nextLine++;
 		str = nextLine;
 	}
 
-	LogString(logFile, timeString.c_str(), str);
+	LogString(logFile, timeString.c_str(), str, log_level);
 }
 
 #define MAX_REPEATED_LINES 30
@@ -368,7 +381,7 @@ static void do_log(int log_level, const char *msg, va_list args, void *param)
 	if (log_level <= LOG_INFO || log_verbose) {
 		if (too_many_repeated_entries(logFile, msg, str))
 			return;
-		LogStringChunk(logFile, str);
+		LogStringChunk(logFile, str, log_level);
 	}
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
@@ -470,6 +483,10 @@ bool OBSApp::InitGlobalConfigDefaults()
 	config_set_default_bool(globalConfig, "Video", "ResetOSXVSyncOnExit",
 				true);
 #endif
+
+	config_set_default_bool(globalConfig, "BasicWindow",
+				"MediaControlsCountdownTimer", true);
+
 	return true;
 }
 
@@ -1131,6 +1148,9 @@ OBSApp::~OBSApp()
 
 	os_inhibit_sleep_set_active(sleepInhibitor, false);
 	os_inhibit_sleep_destroy(sleepInhibitor);
+
+	if (libobs_initialized)
+		obs_shutdown();
 }
 
 static void move_basic_to_profiles(void)
@@ -1351,6 +1371,8 @@ bool OBSApp::OBSInit()
 
 	if (!StartupOBS(locale.c_str(), GetProfilerNameStore()))
 		return false;
+
+	libobs_initialized = true;
 
 	obs_set_ui_task_handler(ui_task_handler);
 
@@ -1637,19 +1659,122 @@ string GenerateTimeDateFilename(const char *extension, bool noSpace)
 string GenerateSpecifiedFilename(const char *extension, bool noSpace,
 				 const char *format)
 {
-	OBSBasic *main = reinterpret_cast<OBSBasic *>(App()->GetMainWindow());
-	bool autoRemux = config_get_bool(main->Config(), "Video", "AutoRemux");
-
-	if ((strcmp(extension, "mp4") == 0) && autoRemux)
-		extension = "mkv";
-
 	BPtr<char> filename =
 		os_generate_formatted_filename(extension, !noSpace, format);
-
-	remuxFilename = string(filename);
-	remuxAfterRecord = autoRemux;
-
 	return string(filename);
+}
+
+static void FindBestFilename(string &strPath, bool noSpace)
+{
+	int num = 2;
+
+	if (!os_file_exists(strPath.c_str()))
+		return;
+
+	const char *ext = strrchr(strPath.c_str(), '.');
+	if (!ext)
+		return;
+
+	int extStart = int(ext - strPath.c_str());
+	for (;;) {
+		string testPath = strPath;
+		string numStr;
+
+		numStr = noSpace ? "_" : " (";
+		numStr += to_string(num++);
+		if (!noSpace)
+			numStr += ")";
+
+		testPath.insert(extStart, numStr);
+
+		if (!os_file_exists(testPath.c_str())) {
+			strPath = testPath;
+			break;
+		}
+	}
+}
+
+static void ensure_directory_exists(string &path)
+{
+	replace(path.begin(), path.end(), '\\', '/');
+
+	size_t last = path.rfind('/');
+	if (last == string::npos)
+		return;
+
+	string directory = path.substr(0, last);
+	os_mkdirs(directory.c_str());
+}
+
+static void remove_reserved_file_characters(string &s)
+{
+	replace(s.begin(), s.end(), '\\', '/');
+	replace(s.begin(), s.end(), '*', '_');
+	replace(s.begin(), s.end(), '?', '_');
+	replace(s.begin(), s.end(), '"', '_');
+	replace(s.begin(), s.end(), '|', '_');
+	replace(s.begin(), s.end(), ':', '_');
+	replace(s.begin(), s.end(), '>', '_');
+	replace(s.begin(), s.end(), '<', '_');
+}
+
+string GetFormatString(const char *format, const char *prefix,
+		       const char *suffix)
+{
+	string f;
+
+	if (prefix && *prefix) {
+		f += prefix;
+		if (f.back() != ' ')
+			f += " ";
+	}
+
+	f += format;
+
+	if (suffix && *suffix) {
+		if (*suffix != ' ')
+			f += " ";
+		f += suffix;
+	}
+
+	remove_reserved_file_characters(f);
+
+	return f;
+}
+
+string GetOutputFilename(const char *path, const char *ext, bool noSpace,
+			 bool overwrite, const char *format)
+{
+	OBSBasic *main = reinterpret_cast<OBSBasic *>(App()->GetMainWindow());
+
+	os_dir_t *dir = path && path[0] ? os_opendir(path) : nullptr;
+
+	if (!dir) {
+		if (main->isVisible())
+			OBSMessageBox::warning(main,
+					       QTStr("Output.BadPath.Title"),
+					       QTStr("Output.BadPath.Text"));
+		else
+			main->SysTrayNotify(QTStr("Output.BadPath.Text"),
+					    QSystemTrayIcon::Warning);
+		return "";
+	}
+
+	os_closedir(dir);
+
+	string strPath;
+	strPath += path;
+
+	char lastChar = strPath.back();
+	if (lastChar != '/' && lastChar != '\\')
+		strPath += "/";
+
+	strPath += GenerateSpecifiedFilename(ext, noSpace, format);
+	ensure_directory_exists(strPath);
+	if (!overwrite)
+		FindBestFilename(strPath, noSpace);
+
+	return strPath;
 }
 
 vector<pair<string, string>> GetLocaleNames()
@@ -1854,6 +1979,22 @@ static int run_program(fstream &logFile, int argc, char *argv[])
 
 		/* --------------------------------------- */
 	run:
+#endif
+
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined(__FreeBSD__)
+		// Mounted by termina during chromeOS linux container startup
+		// https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+/master/project-termina/chromeos-base/termina-lxd-scripts/files/lxd_setup.sh
+		os_dir_t *crosDir = os_opendir("/opt/google/cros-containers");
+		if (crosDir) {
+			QMessageBox::StandardButtons buttons(QMessageBox::Ok);
+			QMessageBox mb(QMessageBox::Critical,
+				       QTStr("ChromeOS.Title"),
+				       QTStr("ChromeOS.Text"), buttons,
+				       nullptr);
+
+			mb.exec();
+			return 0;
+		}
 #endif
 
 		if (!created_log) {

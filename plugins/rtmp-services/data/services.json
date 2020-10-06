@@ -342,12 +342,12 @@
             "name": "Vaughn Live / iNSTAGIB",
             "servers": [
                 {
-                    "name": "US: Primary",
-                    "url": "rtmp://live.vaughnsoft.net/live"
-                },
-                {
                     "name": "US: Chicago, IL",
                     "url": "rtmp://live-ord.vaughnsoft.net/live"
+                },
+                {
+                    "name": "US: Vint Hill, VA",
+                    "url": "rtmp://live-iad.vaughnsoft.net/live"
                 },
                 {
                     "name": "US: Denver, CO",
@@ -356,28 +356,40 @@
                 {
                     "name": "US: New York, NY",
                     "url": "rtmp://live-nyc.vaughnsoft.net/live"
+                },		    
+                {
+                    "name": "US: Miami, FL",
+                    "url": "rtmp://live-mia.vaughnsoft.net/live"
+                },
+                {
+                    "name": "US: Seattle, WA",
+                    "url": "rtmp://live-sea.vaughnsoft.net/live"
                 },
                 {
                     "name": "EU: Amsterdam, NL",
                     "url": "rtmp://live-ams.vaughnsoft.net/live"
+                },
+                {
+                    "name": "EU: London, UK",
+                    "url": "rtmp://live-lhr.vaughnsoft.net/live"
                 }
             ],
             "recommended": {
                 "keyint": 2,
-                "max video bitrate": 3500,
-                "max audio bitrate": 160
+                "max video bitrate": 15000,
+                "max audio bitrate": 320
             }
         },
         {
             "name": "Breakers.TV",
             "servers": [
                 {
-                    "name": "US: Primary",
-                    "url": "rtmp://live.vaughnsoft.net/live"
-                },
-                {
                     "name": "US: Chicago, IL",
                     "url": "rtmp://live-ord.vaughnsoft.net/live"
+                },
+                {
+                    "name": "US: Vint Hill, VA",
+                    "url": "rtmp://live-iad.vaughnsoft.net/live"
                 },
                 {
                     "name": "US: Denver, CO",
@@ -386,16 +398,28 @@
                 {
                     "name": "US: New York, NY",
                     "url": "rtmp://live-nyc.vaughnsoft.net/live"
+                },		    
+                {
+                    "name": "US: Miami, FL",
+                    "url": "rtmp://live-mia.vaughnsoft.net/live"
+                },
+                {
+                    "name": "US: Seattle, WA",
+                    "url": "rtmp://live-sea.vaughnsoft.net/live"
                 },
                 {
                     "name": "EU: Amsterdam, NL",
                     "url": "rtmp://live-ams.vaughnsoft.net/live"
+                },
+                {
+                    "name": "EU: London, UK",
+                    "url": "rtmp://live-lhr.vaughnsoft.net/live"
                 }
             ],
             "recommended": {
                 "keyint": 2,
-                "max video bitrate": 3500,
-                "max audio bitrate": 160
+                "max video bitrate": 15000,
+                "max audio bitrate": 320
             }
         },
         {
@@ -734,6 +758,10 @@
                 {
                     "name": "North America : US West",
                     "url": "rtmp://rtmp-wsu.afreecatv.com/app"
+                },
+                {
+                    "name": "Europe : UK",
+                    "url": "rtmp://rtmp-uk.afreecatv.com/app"
                 },
                 {
                     "name": "Asia : Singapore",
@@ -1703,32 +1731,6 @@
             }
         },
         {
-            "name": "weabook.live",
-            "servers": [
-                {
-                    "name": "N.Virgina, US",
-                    "url": "rtmp://us-api.weabook.live/live"
-                },
-                {
-                    "name": "Singapore, SG",
-                    "url": "rtmp://sg-api.weabook.live/live"
-                },
-                {
-                    "name": "Tokyo, JP",
-                    "url": "rtmp://jp-api.weabook.live/live"
-                },
-                {
-                    "name": "Premium Streaming",
-                    "url": "rtmp://premium.rtmp.weabook.live/live"
-                }
-            ],
-            "recommended": {
-                "keyint": 2,
-                "max audio bitrate": 256,
-                "max video bitrate": 20480
-            }
-        },
-        {
             "name": "Taryana - Apachat | تاریانا - آپاچت",
             "servers": [
                 {
@@ -1741,6 +1743,54 @@
                 "profile": "main",
                 "max video bitrate": 4000,
                 "max audio bitrate": 192
+            }
+        },
+        {
+            "name": "api.video",
+            "servers": [
+                {
+                    "name": "Default",
+                    "url": "rtmp://broadcast.api.video/s"
+                }
+            ],
+            "recommended": {
+                "keyint": 2,
+                "max video bitrate": 20000,
+                "max audio bitrate": 192
+            }
+        },
+        {
+            "name": "SHOWROOM",
+            "servers": [
+                {
+                    "name": "Default",
+                    "url": "https://www.showroom-live.com/api/obs/streaming_info?obs_key="
+                }
+            ],
+            "recommended": {
+                "keyint": 2,
+                "profile": "main",
+                "max video bitrate": 1500,
+                "max audio bitrate": 160,
+                "x264opts": "tune=zerolatency"
+            }
+	},
+        {
+            "name": "Mux",
+            "servers": [
+                {
+                    "name": "Global (RTMPS)",
+                    "url": "rtmps://global-live.mux.com:443/app"
+                },
+                {
+                    "name": "Global (RTMP)",
+                    "url": "rtmp://global-live.mux.com:5222/app"
+                }
+            ],
+            "recommended": {
+                "keyint": 2,
+                "max video bitrate": 5000,
+                "max audio bitrate": 160
             }
         }
     ]

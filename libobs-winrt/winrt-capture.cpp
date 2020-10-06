@@ -134,60 +134,8 @@ struct winrt_capture {
 	uint32_t texture_height;
 	D3D11_BOX client_box;
 
-	bool active;
+	BOOL active;
 	struct winrt_capture *next;
-
-	void draw_cursor()
-	{
-		CURSORINFO ci{};
-		ci.cbSize = sizeof(CURSORINFO);
-		if (!GetCursorInfo(&ci))
-			return;
-
-		if (!(ci.flags & CURSOR_SHOWING))
-			return;
-
-		HICON icon = CopyIcon(ci.hCursor);
-		if (!icon)
-			return;
-
-		ICONINFO ii;
-		if (GetIconInfo(icon, &ii)) {
-			POINT win_pos{};
-			if (window) {
-				if (client_area) {
-					ClientToScreen(window, &win_pos);
-				} else {
-					RECT window_rect;
-					if (DwmGetWindowAttribute(
-						    window,
-						    DWMWA_EXTENDED_FRAME_BOUNDS,
-						    &window_rect,
-						    sizeof(window_rect)) ==
-					    S_OK) {
-						win_pos.x = window_rect.left;
-						win_pos.y = window_rect.top;
-					}
-				}
-			}
-
-			POINT pos;
-			pos.x = ci.ptScreenPos.x - (int)ii.xHotspot - win_pos.x;
-			pos.y = ci.ptScreenPos.y - (int)ii.yHotspot - win_pos.y;
-
-			HDC hdc = (HDC)gs_texture_get_dc(texture);
-
-			DrawIconEx(hdc, pos.x, pos.y, icon, 0, 0, 0, NULL,
-				   DI_NORMAL);
-
-			gs_texture_release_dc(texture);
-
-			DeleteObject(ii.hbmColor);
-			DeleteObject(ii.hbmMask);
-		}
-
-		DestroyIcon(icon);
-	}
 
 	void on_closed(
 		winrt::Windows::Graphics::Capture::GraphicsCaptureItem const &,
@@ -256,10 +204,6 @@ struct winrt_capture {
 					frame_surface.get());
 			}
 
-			if (capture_cursor && cursor_visible) {
-				draw_cursor();
-			}
-
 			texture_written = true;
 		}
 
@@ -283,6 +227,8 @@ static struct winrt_capture *capture_list;
 static void winrt_capture_device_loss_release(void *data)
 {
 	winrt_capture *capture = static_cast<winrt_capture *>(data);
+	capture->active = FALSE;
+
 	capture->frame_arrived.revoke();
 	capture->frame_pool.Close();
 	capture->session.Close();
@@ -340,9 +286,9 @@ static void winrt_capture_device_loss_rebuild(void *device_void, void *data)
 	const winrt::Windows::Graphics::Capture::GraphicsCaptureSession session =
 		frame_pool.CreateCaptureSession(item);
 
-	/* disable cursor capture if possible since ours performs better */
 	if (winrt_capture_cursor_toggle_supported())
-		session.IsCursorCaptureEnabled(false);
+		session.IsCursorCaptureEnabled(capture->capture_cursor &&
+					       capture->cursor_visible);
 
 	capture->item = item;
 	capture->device = device;
@@ -353,7 +299,15 @@ static void winrt_capture_device_loss_rebuild(void *device_void, void *data)
 		winrt::auto_revoke,
 		{capture, &winrt_capture::on_frame_arrived});
 
-	session.StartCapture();
+	try {
+		session.StartCapture();
+		capture->active = TRUE;
+	} catch (winrt::hresult_error &err) {
+		blog(LOG_ERROR, "StartCapture (0x%08X): %ls", err.to_abi(),
+		     err.message().c_str());
+	} catch (...) {
+		blog(LOG_ERROR, "StartCapture (0x%08X)", winrt::to_hresult());
+	}
 }
 
 extern "C" EXPORT struct winrt_capture *
@@ -415,12 +369,13 @@ try {
 	const BOOL cursor_toggle_supported =
 		winrt_capture_cursor_toggle_supported();
 	if (cursor_toggle_supported)
-		session.IsCursorCaptureEnabled(false);
+		session.IsCursorCaptureEnabled(cursor);
 
 	struct winrt_capture *capture = new winrt_capture{};
 	capture->window = window;
 	capture->client_area = client_area;
 	capture->capture_cursor = cursor && cursor_toggle_supported;
+	capture->cursor_visible = cursor;
 	capture->item = item;
 	capture->device = device;
 	d3d_device->GetImmediateContext(&capture->context);
@@ -432,11 +387,11 @@ try {
 	capture->frame_arrived = frame_pool.FrameArrived(
 		winrt::auto_revoke,
 		{capture, &winrt_capture::on_frame_arrived});
-	capture->active = TRUE;
 	capture->next = capture_list;
 	capture_list = capture;
 
 	session.StartCapture();
+	capture->active = TRUE;
 
 	gs_device_loss callbacks;
 	callbacks.device_loss_release = winrt_capture_device_loss_release;
@@ -513,7 +468,12 @@ extern "C" EXPORT BOOL winrt_capture_active(const struct winrt_capture *capture)
 extern "C" EXPORT void winrt_capture_show_cursor(struct winrt_capture *capture,
 						 BOOL visible)
 {
-	capture->cursor_visible = visible;
+	if (capture->capture_cursor) {
+		if (capture->cursor_visible != visible) {
+			capture->session.IsCursorCaptureEnabled(visible);
+			capture->cursor_visible = visible;
+		}
+	}
 }
 
 extern "C" EXPORT void winrt_capture_render(struct winrt_capture *capture,

@@ -2745,7 +2745,7 @@ void OBSBasicSettings::LoadHotkeySettings(obs_hotkey_id ignoreKey)
 
 		if (type == OBS_SOURCE_TYPE_SCENE) {
 			scenes.emplace_back(source, label, hw);
-		} else if (type == OBS_SOURCE_TYPE_INPUT) {
+		} else if (obs_source_get_name(source) != NULL) {
 			sources.emplace_back(source, label, hw);
 		} else if (type == OBS_SOURCE_TYPE_FILTER) {
 			label->setText(label->text() + " '" +
@@ -3163,8 +3163,12 @@ void OBSBasicSettings::SaveGeneralSettings()
 		config_set_bool(GetGlobalConfig(), "BasicWindow",
 				"ProjectorAlwaysOnTop",
 				ui->projectorAlwaysOnTop->isChecked());
+#if defined(_WIN32) || defined(__APPLE__)
 		main->UpdateProjectorAlwaysOnTop(
 			ui->projectorAlwaysOnTop->isChecked());
+#else
+		main->ResetProjectors();
+#endif
 	}
 
 	if (WidgetChanged(ui->recordWhenStreaming))
