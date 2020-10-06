@@ -1526,8 +1526,9 @@ void SourceTree::AddGroup()
 
 void SourceTree::UpdateNoSourcesMessage()
 {
-	const char * currentTheme = config_get_string(App()->GlobalConfig(), "General","CurrentTheme");
-	char buffer [50] = {0};
+	const char *currentTheme = config_get_string(App()->GlobalConfig(),
+						     "General", "CurrentTheme");
+	char buffer[50] = {0};
 	snprintf(buffer, 50, "themes/%s/no_sources.svg", currentTheme);
 
 	QString file;
@@ -1535,12 +1536,13 @@ void SourceTree::UpdateNoSourcesMessage()
 	if (GetDataFilePath(buffer, themePath)) {
 		file = themePath.c_str();
 	} else {
-                std::string darkPath;
-                GetDataFilePath("themes/Liushui/no_sources.svg", darkPath);
+		std::string darkPath;
+		GetDataFilePath("themes/Liushui/no_sources.svg", darkPath);
 
-                QColor color = palette().text().color();
-                bool lightTheme = (color.redF() < 0.5);
-		file = lightTheme ? ":res/images/no_sources.svg" : darkPath.c_str();
+		QColor color = palette().text().color();
+		bool lightTheme = (color.redF() < 0.5);
+		file = lightTheme ? ":res/images/no_sources.svg"
+				  : darkPath.c_str();
 	}
 	iconNoSources.load(file);
 

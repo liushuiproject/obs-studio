@@ -75,7 +75,7 @@ void VolControl::SliderChanged(int vol)
 void VolControl::SlideHandleDoubleClicked()
 {
 	obs_fader_set_db(obs_fader, 0);
-        VolumeChanged();
+	VolumeChanged();
 	// TODO: transition?
 }
 

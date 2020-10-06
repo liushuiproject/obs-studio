@@ -22,14 +22,16 @@ void SliderIgnoreScroll::wheelEvent(QWheelEvent *event)
 		QSlider::wheelEvent(event);
 }
 
-void SliderIgnoreScroll::mouseDoubleClickEvent(QMouseEvent *event) {
-        QStyleOptionSlider opt;
-        this->initStyleOption(&opt);
-        QRect sr = this->style()->subControlRect(QStyle::CC_Slider, &opt, QStyle::SC_SliderHandle, this);
+void SliderIgnoreScroll::mouseDoubleClickEvent(QMouseEvent *event)
+{
+	QStyleOptionSlider opt;
+	this->initStyleOption(&opt);
+	QRect sr = this->style()->subControlRect(QStyle::CC_Slider, &opt,
+						 QStyle::SC_SliderHandle, this);
 
-        if (sr.contains(event->pos())) {
+	if (sr.contains(event->pos())) {
 		emit sliderHandleDoubleClicked();
 		return;
-        }
-        QSlider::mouseDoubleClickEvent(event);
+	}
+	QSlider::mouseDoubleClickEvent(event);
 }
