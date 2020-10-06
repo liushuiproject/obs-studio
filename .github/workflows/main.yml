@@ -383,7 +383,8 @@ jobs:
            qtbase5-dev \
            libqt5svg5-dev \
            swig \
-           libcmocka-dev
+           libcmocka-dev \
+           libpango1.0-dev
       - name: 'Restore Chromium Embedded Framework from cache'
         id: cef-cache
         uses: actions/cache@v1
