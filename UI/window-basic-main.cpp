@@ -190,9 +190,6 @@ extern void RegisterRestreamAuth();
 OBSBasic::OBSBasic(QWidget *parent)
 	: OBSMainWindow(parent), ui(new Ui::OBSBasic)
 {
-	/* setup log viewer */
-	logView = new OBSLogViewer();
-
 	qRegisterMetaTypeStreamOperators<SignalContainer<OBSScene>>(
 		"SignalContainer<OBSScene>");
 
@@ -380,7 +377,6 @@ OBSBasic::OBSBasic(QWidget *parent)
 	}
 
 	QPoint curSize(width(), height());
-
 	QPoint statsDockSize(statsDock->width(), statsDock->height());
 	QPoint statsDockPos = curSize / 2 - statsDockSize / 2;
 	QPoint newPos = curPos + statsDockPos;
@@ -1934,9 +1930,6 @@ void OBSBasic::OnFirstLoad()
 #endif
 
 	Auth::Load();
-
-	if (logView && logView->ShowOnStartup())
-		logView->show();
 }
 
 void OBSBasic::DeferredSysTrayLoad(int requeueCount)
@@ -2384,7 +2377,6 @@ OBSBasic::~OBSBasic()
 	if (updateCheckThread && updateCheckThread->isRunning())
 		updateCheckThread->wait();
 
-	delete logView;
 	delete multiviewProjectorMenu;
 	delete previewProjector;
 	delete studioProgramProjector;
@@ -5134,7 +5126,18 @@ void OBSBasic::on_actionUploadLastLog_triggered()
 
 void OBSBasic::on_actionViewCurrentLog_triggered()
 {
-	logView->setVisible(!logView->isVisible());
+	char logDir[512];
+	if (GetConfigPath(logDir, sizeof(logDir), "obs-studio/logs") <= 0)
+		return;
+
+	const char *log = App()->GetCurrentLog();
+
+	string path = logDir;
+	path += "/";
+	path += log;
+
+	QUrl url = QUrl::fromLocalFile(QT_UTF8(path.c_str()));
+	QDesktopServices::openUrl(url);
 }
 
 void OBSBasic::on_actionShowCrashLogs_triggered()

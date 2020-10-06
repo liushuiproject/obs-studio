@@ -250,22 +250,12 @@ string CurrentDateTimeString()
 }
 
 static inline void LogString(fstream &logFile, const char *timeString,
-			     char *str, int log_level)
+			     char *str)
 {
-	string msg;
-	msg += timeString;
-	msg += str;
-
-	logFile << msg << endl;
-
-	struct calldata params = {0};
-	calldata_set_int(&params, "type", log_level);
-	calldata_set_string(&params, "message", msg.c_str());
-	signal_handler_signal(obs_get_signal_handler(), "log_updated", &params);
-	calldata_free(&params);
+	logFile << timeString << str << endl;
 }
 
-static inline void LogStringChunk(fstream &logFile, char *str, int log_level)
+static inline void LogStringChunk(fstream &logFile, char *str)
 {
 	char *nextLine = str;
 	string timeString = CurrentTimeString();
@@ -282,12 +272,12 @@ static inline void LogStringChunk(fstream &logFile, char *str, int log_level)
 			nextLine[0] = 0;
 		}
 
-		LogString(logFile, timeString.c_str(), str, log_level);
+		LogString(logFile, timeString.c_str(), str);
 		nextLine++;
 		str = nextLine;
 	}
 
-	LogString(logFile, timeString.c_str(), str, log_level);
+	LogString(logFile, timeString.c_str(), str);
 }
 
 #define MAX_REPEATED_LINES 30
@@ -378,7 +368,7 @@ static void do_log(int log_level, const char *msg, va_list args, void *param)
 	if (log_level <= LOG_INFO || log_verbose) {
 		if (too_many_repeated_entries(logFile, msg, str))
 			return;
-		LogStringChunk(logFile, str, log_level);
+		LogStringChunk(logFile, str);
 	}
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
